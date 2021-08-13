@@ -1,0 +1,7 @@
+{
+    "urls_filepath" : "urls.txt",
+    "names_filepath" : "names.txt",
+    "save_dir": "DownloadedYT",
+    "audio_only" : true,
+    "file_type" : "mp3"
+}
