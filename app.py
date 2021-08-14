@@ -59,6 +59,8 @@ def download(url, name, save_dir, content_type, formatt):
         content.download(quiet=False, filepath=file_path)
         to_convert.insert(0, file_path)
         log_output("\nSUCCESSFULLY downloaded " + video_tag)
+
+        return True
     
     except NoAudiumStreamsError:
         print("Could not find any audio only streams")
@@ -66,10 +68,14 @@ def download(url, name, save_dir, content_type, formatt):
         log_output("\nCould not find any audio only streams")
         failed_downloads.append(video_tag)
 
+        return False
+
     except:
         print("Failed")
         log_output("\nFAILD to download " + video_tag)
         failed_downloads.append(video_tag)
+
+        return False
 
 def convert(input_file, output_dir, filename, extension):
     try:
@@ -108,8 +114,10 @@ def run_downloader(urls, names, config):
 
     for i in range(0, len(urls)):
         print("Downloading " + names[i] + " ({}/{})".format(str((i + 1)), str(len(urls))))
-        download(urls[i], names[i], config["save_dir"], mode, config["file_type"])
-        convert(to_convert[0], config["save_dir"], names[i], config["file_type"])
+        all_ok = download(urls[i], names[i], config["save_dir"], mode, config["file_type"])
+        
+        if all_ok:
+            convert(to_convert[0], config["save_dir"], names[i], config["file_type"])
 
     print("\nAll done!")
 
