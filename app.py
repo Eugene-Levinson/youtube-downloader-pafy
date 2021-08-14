@@ -1,6 +1,7 @@
 import pafy
 import os
 import json
+import ffmpy
 
 # define Python user-defined exceptions
 class Error(Exception):
@@ -25,15 +26,13 @@ def log_output(msg):
 
 successfully_downloaded = []
 failed_downloads = []
+to_convert = []
 
 
 def download(url, name, save_dir, content_type, formatt):
     video_tag = name + " : " + url
-    file_path = save_dir + name + "." + formatt
-
-    if os.path.isfile(file_path):
-        os.remove(file_path) 
-
+    save_dir += "raw/"
+    
     try:
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
@@ -51,7 +50,14 @@ def download(url, name, save_dir, content_type, formatt):
         else:
             content = video.getbest()
 
+        file_path = save_dir + name + "." + content.extension
+
+        if os.path.isfile(file_path):
+            os.remove(file_path) 
+
+
         content.download(quiet=False, filepath=file_path)
+        to_convert.insert(0, file_path)
         log_output("\nSUCCESSFULLY downloaded " + video_tag)
     
     except NoAudiumStreamsError:
@@ -65,7 +71,26 @@ def download(url, name, save_dir, content_type, formatt):
         log_output("\nFAILD to download " + video_tag)
         failed_downloads.append(video_tag)
 
-        
+def convert(input_file, output_dir, filename, extension):
+    try:
+        print("Converting to a desired format")
+        output_file = output_dir + "converted/" + filename + "." + extension
+        print(output_file)
+
+        if not os.path.exists(output_dir + "converted/"):
+            os.makedirs(output_dir + "converted/")
+
+        ff = ffmpy.FFmpeg(
+            inputs={input_file: None},
+            outputs={output_file: None}
+        )     
+
+        ff.run()
+    except Exception as e:
+        print("There was an error converting")
+        print(filename)
+        print(e)
+
 
 def run_downloader(urls, names, config):
 
@@ -84,6 +109,7 @@ def run_downloader(urls, names, config):
     for i in range(0, len(urls)):
         print("Downloading " + names[i] + " ({}/{})".format(str((i + 1)), str(len(urls))))
         download(urls[i], names[i], config["save_dir"], mode, config["file_type"])
+        convert(to_convert[0], config["save_dir"], names[i], config["file_type"])
 
     print("\nAll done!")
 
